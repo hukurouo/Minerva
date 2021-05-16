@@ -4,7 +4,7 @@ require "csv"
 
 INTERVEL_SEC = 1
 
-header_str = "horseName,frameNumber,jockeyName,jockeyId" 
+header_str = "horseName,frameNumber,jockeyName,jockeyId,horseNumber" 
 @results = [header_str.split(",")]
 
 @dir_name = ARGV[0] #"0502victoriamile"
@@ -33,7 +33,8 @@ def get_horse_url(url)
     jockey_name = tr.css('td')[6].text.strip.sjisable
     horse_name = tr.css('td')[3].text.strip.sjisable
     frame_number = tr.css('td')[0].text.strip.sjisable
-    @results.push([horse_name,frame_number,jockey_name,jockey_id])
+    horse_number = tr.css('td')[1].text.strip.sjisable
+    @results.push([horse_name,frame_number,jockey_name,jockey_id,horse_number])
   end
 end
 
