@@ -4,7 +4,8 @@ require "csv"
 @horse_coef = 1
 @jockey_coef = 1
 @frame_coef = 0.4
-@time_coef = 1
+@time_coef = 0.4
+@race_coef = 1
 @dir_name = ARGV[0] 
 
 
@@ -13,10 +14,11 @@ def evaluate_finished
   result_eval = CSV.table("datas/#{@dir_name}/evaluated_result.csv", {:encoding => "UTF-8"})
   frame_eval = CSV.table("datas/#{@dir_name}/evaluated_frame_number.csv", {:encoding => "UTF-8"})
   time_eval = CSV.table("datas/#{@dir_name}/evaluated_timepoint.csv", {:encoding => "UTF-8"})
+  race_eval = CSV.table("datas/#{@dir_name}/evaluated_racepoint.csv", {:encoding => "UTF-8"})
   card = CSV.table("datas/#{@dir_name}/this_year_card.csv", {:encoding => "UTF-8"})
   finished = {}
-  jockey_eval.each do |r|
-    finished.store(r[:horsename],{top: [], wide: [], jockey: r[:jockeyname]})
+  card.each do |r|
+    finished.store(r[:horsename],{top: [], wide: [], jockey: r[:jockeyname], horsenumber: r[:horsenumber]})
   end
   result_eval.each do |r|
     finished[r[:horsename]][:top].push(r[:roundtop])
@@ -43,6 +45,10 @@ def evaluate_finished
     finished[r[:horsename]][:top].push(r[:round])
     finished[r[:horsename]][:wide].push(r[:round])
   end
+  race_eval.each do |r|
+    finished[r[:horsename]][:top].push(r[:round])
+    finished[r[:horsename]][:wide].push(r[:round])
+  end
 
   finished_csv_top = []
   finished_csv_wide = []
@@ -50,31 +56,33 @@ def evaluate_finished
   finished.each do |data|
     horse_name = data[0]
     jockey_name = data[1][:jockey]
+    horse_number = data[1][:horsenumber]
 
     top = data[1][:top]
     wide = data[1][:wide]
 
-    finished_csv_top = sum_proc(horse_name, jockey_name, top, finished_csv_top)
-    finished_csv_wide = sum_proc(horse_name, jockey_name, wide, finished_csv_wide)
+    finished_csv_top = sum_proc(horse_number, horse_name, jockey_name, top, finished_csv_top)
+    finished_csv_wide = sum_proc(horse_number, horse_name, jockey_name, wide, finished_csv_wide)
     
   end
-  sorted = finished_csv_top.sort_by{|x| x[2]*-1 }
-  sorted2 = finished_csv_wide.sort_by{|x| x[2]*-1 }
-  sorted.unshift(["horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint"])
-  sorted2.unshift(["horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint"])
+  sorted = finished_csv_top.sort_by{|x| x[3]*-1 }
+  sorted2 = finished_csv_wide.sort_by{|x| x[3]*-1 }
+  sorted.unshift(["horseNumber","horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint"])
+  sorted2.unshift(["horseNumber", "horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint"])
   write(sorted, "finished_top")
   write(sorted2, "finished_wide")
 end
 
-def sum_proc(horse_name, jockey_name, data, finished_csv)
+def sum_proc(horse_number, horse_name, jockey_name, data, finished_csv)
   horse_point = data[0].to_f
   jockey_point = data[1].to_f
   frame_point = data[2].to_f
   time_point = data[3].to_f
+  race_point = data[4].to_f
 
-  total = horse_point * @horse_coef + jockey_point * @jockey_coef + frame_point * @frame_coef + time_point * @time_coef
+  total = horse_point * @horse_coef + jockey_point * @jockey_coef + frame_point * @frame_coef + time_point * @time_coef + race_point * @race_coef
 
-  finished_csv.push([horse_name, jockey_name, total.round(2), horse_point, jockey_point, frame_point, time_point])
+  finished_csv.push([horse_number, horse_name, jockey_name, total.round(2), horse_point, jockey_point, frame_point, time_point, race_point])
   finished_csv
 end
 
