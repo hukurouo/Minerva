@@ -51,8 +51,12 @@ def evaluate_result()
   result_evaluated = []
   horse_name_map.each do |data|
     name = data[0]
-    top = 100 * data[1][:top].compact.sum / data[1][:top].compact.length
-    wide = 100 * data[1][:wide].compact.sum / data[1][:wide].compact.length
+    div_t = data[1][:top].compact.length
+    div_w = data[1][:wide].compact.length
+    div_t = 1 if div_t == 0
+    div_w = 1 if div_w == 0
+    top = 100 * data[1][:top].compact.sum / div_t
+    wide = 100 * data[1][:wide].compact.sum / div_w
     result_evaluated.push([name,top.round(2),wide.round(2)])
   end
 

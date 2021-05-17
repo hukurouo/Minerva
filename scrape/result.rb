@@ -9,8 +9,8 @@ header_str = "rank,horseName,horseNumber"
 
 @odds = [["type","horseNumber","odds"]]
 
-@dir_name = "0402satsuki" #ARGV[0] #"0502victoriamile"
-@url = "https://race.netkeiba.com/race/result.html?race_id=202106030811" #ARGV[1] #"https://race.netkeiba.com/race/shutuba.html?race_id=202105020811&rf=race_submenu"
+@dir_name = ARGV[0] #"0502victoriamile"
+@url = ARGV[1] #"https://race.netkeiba.com/race/shutuba.html?race_id=202105020811&rf=race_submenu"
 
 class String
   def sjisable
@@ -79,10 +79,20 @@ def get_result(url)
     @odds.push([odds_type[i],odds_horse_number[i],wide_odds[i]])
   end
 
+  #馬単
+  umatan_table = doc.xpath('//tr[@class="Umatan"]/td')
+  umatan_odds = umatan_table[1].text.split("円").map{|x|x.gsub(/,/, '')}[0]
+  @odds.push(["馬単", horse_1 + "," + horse_2, umatan_odds])
+
   #三連複
   huku3_table =  doc.xpath('//tr[@class="Fuku3"]/td')
   huku3_odds = huku3_table[1].text.split("円").map{|x|x.gsub(/,/, '')}[0]
   @odds.push(["三連複", horse_1 + "," + horse_2 + "," + horse_3, huku3_odds])
+
+  #3連単
+  tan3_table =  doc.xpath('//tr[@class="Tan3"]/td')
+  tan3_odds = tan3_table[1].text.split("円").map{|x|x.gsub(/,/, '')}[0]
+  @odds.push(["三連単", horse_1 + "," + horse_2 + "," + horse_3, tan3_odds])
 
   write("odds", @odds)
 

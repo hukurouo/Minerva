@@ -16,6 +16,8 @@ def evaluate_finished
   time_eval = CSV.table("datas/#{@dir_name}/evaluated_timepoint.csv", {:encoding => "UTF-8"})
   race_eval = CSV.table("datas/#{@dir_name}/evaluated_racepoint.csv", {:encoding => "UTF-8"})
   card = CSV.table("datas/#{@dir_name}/this_year_card.csv", {:encoding => "UTF-8"})
+  
+
   finished = {}
   card.each do |r|
     finished.store(r[:horsename],{top: [], wide: [], jockey: r[:jockeyname], horsenumber: r[:horsenumber]})
@@ -67,8 +69,8 @@ def evaluate_finished
   end
   sorted = finished_csv_top.sort_by{|x| x[3]*-1 }
   sorted2 = finished_csv_wide.sort_by{|x| x[3]*-1 }
-  sorted.unshift(["horseNumber","horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint"])
-  sorted2.unshift(["horseNumber", "horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint"])
+  sorted.unshift(["horseNumber","horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint","racePoint"])
+  sorted2.unshift(["horseNumber", "horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint","racePoint"])
   write(sorted, "finished_top")
   write(sorted2, "finished_wide")
 end
