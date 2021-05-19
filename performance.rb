@@ -17,16 +17,16 @@ def name_split(name)
 end
 
 data = CSV.table("race_list_done.csv", encoding: "UTF-8")
-sorted = data.sort_by{|x| name_arrange(x)}
+#sorted = data.sort_by{|x| name_arrange(x)}
 
-
-
-@dir_names = sorted.map{|x|x[:dirname]}
+@dir_names = data.map{|x|x[:dirname]}
 @result_csv = []
 @header = ["title","tan","tan2","huku","wide3t","wide3w","wide5t","wide5w","umaren3t","umaren3w","umaren5t","umaren5w","3huku5t","3huku5w"]
 
 def performance
-  @dir_names.each do |name|
+  @dir_names.each_with_index do |name, index|
+    next if name == "0503oaks"
+    next if index >= 23
     @result_csv_row = [name_split(name)] 
     top = CSV.table("datas/#{name}/finished_top.csv", encoding: "UTF-8")
     wide = CSV.table("datas/#{name}/finished_wide.csv", encoding: "UTF-8")
@@ -35,10 +35,12 @@ def performance
     @result_csv.push(@result_csv_row)
   end
   totals = total_calc()
+  hit_rates = hit_rate_calc()
   recovery_rates = recovery_calc(totals)
   @result_csv.unshift(["----------"])
   @result_csv.unshift(totals)
   @result_csv.unshift(recovery_rates)
+  @result_csv.unshift(hit_rates)
   @result_csv.unshift(["----------"])
   @result_csv.unshift(@header)
   write()
@@ -185,6 +187,27 @@ def total_calc()
     totals.push sum
   end
   totals
+end
+
+def hit_rate_calc()
+  col_num = @result_csv[1].length
+  hit_rates = ["hit_rate"]
+  (col_num).times do |i|
+    next if i == 0
+    count = 0
+    hit = 0
+    @result_csv.each_with_index do |r,j|
+      if r[i] != -1000
+        hit += 1
+        count += 1
+      else
+        count += 1
+      end
+    end
+    rate = (hit.to_f / count)*100
+    hit_rates.push (rate.round(2).to_s + "%")
+  end
+  hit_rates
 end
 
 def recovery_calc(totals)
