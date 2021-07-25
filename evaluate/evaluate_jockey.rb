@@ -60,6 +60,7 @@ def evaluate_jockey
   write(sorted, "evaluated_jockey")
 end
 
+#ポイント算出ロジック
 def eval_data(res)
   top_point= 0
   wide_point = 0
@@ -70,8 +71,10 @@ def eval_data(res)
   wide_r_rate = res[:widerecoveryrate].chop.to_f
   top_point = count * win_rate / 100 * top_r_rate / 100 
   wide_point = count * wide_rate / 100 * wide_r_rate / 100 
-  top_raterate = (win_rate * top_r_rate) + count
-  wide_raterate = (wide_rate * wide_r_rate) + count
+  #  top_raterate = (win_rate * top_r_rate) + count
+  #  wide_raterate = (wide_rate * wide_r_rate) + count
+  top_raterate = win_rate * 3 + top_r_rate
+  wide_raterate = wide_rate * 2 + wide_r_rate
   [top_point.round(), wide_point.round(), top_raterate.round(), wide_raterate.round()]
 end
 

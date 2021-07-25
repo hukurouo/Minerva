@@ -1,6 +1,6 @@
 "type,first,second,third,beyond3,count,winRate,win2Rate,wideRate,topRecoveryRate,wideRecoveryRate"
 
-id = "01051"
+id = "05089"
 text = File.read("datas/jockey/textdata/#{id}.txt", encoding: 'UTF-8')
 text = text.split(/\R/)
 csv_data = ["type,first,second,third,beyond3,count,winRate,win2Rate,wideRate,topRecoveryRate,wideRecoveryRate".split(",")]

@@ -8,21 +8,23 @@ header_str = "raceName,arrange1,arrange2,arrange3,topPoint1,widePoint1,topPoint2
 
 def result_prepare
   data = CSV.table("datas/#{@dir_name}/10years.csv", encoding: "UTF-8")
-  base_race_name = @base_race_name
+  base_race_name = race_name_strip(@base_race_name)
   race_names = data[:racename].uniq
 
   race_names.each do |race_name|
+    race_name = race_name_strip(race_name)
+    #next if race_name == base_race_name 
     race_horse_name_list = []
     hash = {}
     result = []
     data.each do |d|
-      if d[:racename] == race_name
+      if race_name_strip(d[:racename]) == race_name
         race_horse_name_list.push d[:horsename]
         hash.store(d[:horsename], d[:rank])
       end
     end
     data.each do |d|
-      if d[:racename] == base_race_name && race_horse_name_list.include?(d[:horsename])
+      if race_name_strip(d[:racename]) == base_race_name && race_horse_name_list.include?(d[:horsename])
         race_rank = hash[d[:horsename]]
         base_race_rank = d[:rank]
         if /\d/.match?(race_rank.to_s) && /\d/.match?(base_race_rank.to_s)
@@ -67,6 +69,14 @@ def result_prepare
 
   write()
   
+end
+
+def race_name_strip(race_name)
+  if race_name.include? "("
+    race_name = race_name.split("(")[0]
+  else
+    race_name
+  end
 end
 
 def set_result_arrange(base_rank, iremono)

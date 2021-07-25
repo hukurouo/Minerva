@@ -1,37 +1,63 @@
 require "csv"
 
 def name_arrange(x)
-  if x[1].include?("/")
-    x[1].split("/")[1].to_f 
-  else 
-    x[1].to_f
+  if x[1].include?("G2") || x[1].include?("G3")
+    if x[1].include?("/")
+      x[1].split("/")[1].to_f 
+    else 
+      x[1].to_f
+    end
+  else
+    if x[1].include?("/")
+      x[1].split("/")[2].to_f 
+    else 
+      x[1].to_f
+    end
   end
 end
 
 def name_split(name)
-  if name.include?("/")
-    name.split("/")[1]
-  else 
-    name
+  if name.include?("G2") || name.include?("G3")
+    if name.include?("/")
+      name.split("/")[1]
+    else 
+      name
+    end
+  else
+    if name.include?("/")
+      name = name.split("/")[1] + "/" + name.split("/")[2]
+    else 
+      name
+    end
   end
 end
 
 data = CSV.table("race_list_done.csv", encoding: "UTF-8")
+#data = data.select {|data| data[:racecourse] == "東京"}
 #sorted = data.sort_by{|x| name_arrange(x)}
 
 @dir_names = data.map{|x|x[:dirname]}
 @result_csv = []
-@header = ["title","tan","tan2","huku","wide3t","wide3w","wide5t","wide5w","umaren3t","umaren3w","umaren5t","umaren5w","3huku5t","3huku5w"]
+@header = ["title","tan","tan2","huku","wide3box","wide5box","3huku5box","1-2-3oddsRank"]
+#@header = ["title","tan","tan2","huku","wide3t","wide3w","wide5t","wide5w","umaren3t","umaren3w","umaren5t","umaren5w","3huku3t","3huku3w","3huku5t","3huku5w","1-2-3oddsRank"]
 
 def performance
   @dir_names.each_with_index do |name, index|
-    next if name == "0503oaks"
-    next if index >= 23
-    @result_csv_row = [name_split(name)] 
+    #next if name == "0504derby"
+    #next if (name.include?("G2") || name.include?("G1"))
+    next unless name.include?("G3")
+    #next if (name.include?("past"))
+    #next unless (name.include?("G2"))
+    @result_csv_row = [name] 
     top = CSV.table("datas/#{name}/finished_top.csv", encoding: "UTF-8")
     wide = CSV.table("datas/#{name}/finished_wide.csv", encoding: "UTF-8")
     odds = CSV.table("datas/#{name}/odds.csv", encoding: "UTF-8")
+    result = CSV.table("datas/#{name}/result.csv", encoding: "UTF-8")
+    rank1 = result[0][:odds_rank]
+    rank2 = result[1][:odds_rank]
+    rank3 = result[2][:odds_rank]
     aggregate(top,wide,odds)
+    @result_csv_row.push([rank1,rank2,rank3].join("-"))
     @result_csv.push(@result_csv_row)
   end
   totals = total_calc()
@@ -47,11 +73,13 @@ def performance
 end
 
 def aggregate(top,wide,odds)
+
   top1 = top[0][:horsenumber]
   top2 = top[1][:horsenumber]
   top3 = top[2][:horsenumber]
   top4 = top[3][:horsenumber]
   top5 = top[4][:horsenumber]
+
 
   top5ten = [top1,top2,top3,top4,top5]
   top3ten = [top1,top2,top3]
@@ -86,47 +114,61 @@ def aggregate(top,wide,odds)
     @result_csv_row.push odds[1][:odds] * 10 - 1000
   elsif top1 == odds[2][:horsenumber]
     @result_csv_row.push odds[2][:odds] * 10 - 1000
-  elsif top1 == odds[3][:horsenumber]
+  elsif top1 == odds[3][:horsenumber] && odds[3][:odds]
     @result_csv_row.push odds[3][:odds] * 10 - 1000
   else
     @result_csv_row.push -1000
   end
 
+  #ワイド1点
+  #wide_calc([wide1,wide2],odds)
+
   #ワイド3点BOX(top)
-  wide_calc(top3ten,odds)
+  #wide_calc(top3ten,odds)
 
   #ワイド3点BOX(wide)
   wide_calc(wide3ten,odds)
 
+  #ワイド4点BOX(wide)
+  #wide_calc([wide1,wide2,wide3,wide4],odds)
+
   #ワイド5点BOX(top)
-  wide_calc(top5ten,odds)
+  #wide_calc(top5ten,odds)
 
   #ワイド5点BOX(wide)
   wide_calc(wide5ten,odds)
 
   #馬連3点BOX(top)
-  umaren_calc(top3ten,odds)
+  #umaren_calc(top3ten,odds)
 
   #馬連3点BOX(wide)
-  umaren_calc(wide3ten,odds)
+  #umaren_calc(wide3ten,odds)
 
   #馬連5点BOX(top)
-  umaren_calc(top5ten,odds)
+  #umaren_calc(top5ten,odds)
 
   #馬連5点BOX(wide)
-  umaren_calc(wide5ten,odds)
+  #umaren_calc(wide5ten,odds)
+
+  #三連複3点BOX(top)
+  #sanrenhuku_calc(top3ten,odds)
+
+  #三連複3点BOX(wide)
+  #sanrenhuku_calc(wide3ten,odds)
 
   #三連複5点BOX(top)
-  sanrenhuku_calc(top5ten,odds)
+  #sanrenhuku_calc(top5ten,odds)
 
   #三連複5点BOX(wide)
   sanrenhuku_calc(wide5ten,odds)
 end
 
 def sanrenhuku_calc(box,odds)
+  coef = 1
+  coef = 3.3 if box.length == 3
   odds = odds[9]
   if is_hit_sanrenhuku?(box,odds)
-    @result_csv_row.push odds[:odds]-1000
+    @result_csv_row.push (odds[:odds]*coef).round()-1000
   else
     @result_csv_row.push -1000
   end
@@ -149,7 +191,9 @@ def wide_calc(box,odds)
   wide_odds_3 = odds[7]
   wide_money = -1000
   coef = 1
+  coef = 1.6 if box.length == 4
   coef = 3.3 if box.length == 3
+  coef = 10 if box.length == 2
   if is_hit_wide?(box,wide_odds_1)
     wide_money += (wide_odds_1[:odds]*coef).round()
   end
@@ -176,7 +220,7 @@ def is_hit_sanrenhuku?(box,odds)
 end
 
 def total_calc()
-  col_num = @result_csv[1].length
+  col_num = @result_csv[1].length-1
   totals = ["total"]
   (col_num).times do |i|
     next if i == 0
@@ -190,7 +234,7 @@ def total_calc()
 end
 
 def hit_rate_calc()
-  col_num = @result_csv[1].length
+  col_num = @result_csv[1].length-1
   hit_rates = ["hit_rate"]
   (col_num).times do |i|
     next if i == 0

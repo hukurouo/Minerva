@@ -15,46 +15,66 @@ def evaluate_finished
   time_eval = CSV.table("datas/#{@dir_name}/evaluated_timepoint.csv", {:encoding => "UTF-8"})
   race_eval = CSV.table("datas/#{@dir_name}/evaluated_racepoint.csv", {:encoding => "UTF-8"})
   card = CSV.table("datas/#{@dir_name}/this_year_card.csv", {:encoding => "UTF-8"})
+  data = CSV.table("datas/#{@dir_name}/today_data.csv", {:encoding => "UTF-8"})
+  #horseName,horseId,oikiri,comment,timePointTop,timePointWide,timePointTotal,rankPoint,tyakusaPoint
 
   dir_name = @dir_name
   if dir_name.include?("past")
     dir_name = dir_name.split("/")[2]
   end
-  frame_eval = CSV.table("datas/#{dir_name}/evaluated_frame_number.csv", {:encoding => "UTF-8"})
+  #frame_eval = CSV.table("datas/#{dir_name}/evaluated_frame_number.csv", {:encoding => "UTF-8"})
 
   finished = {}
   card.each do |r|
     finished.store(r[:horsename],{top: [], wide: [], jockey: r[:jockeyname], horsenumber: r[:horsenumber]})
   end
   result_eval.each do |r|
-    finished[r[:horsename]][:top].push(r[:roundtop])
+    begin
+      finished[r[:horsename]][:top].push(r[:roundtop])
+    rescue
+      p @dir_name
+      p r[:horsename]
+    end
     finished[r[:horsename]][:wide].push(r[:roundwide])
   end
   jockey_eval.each do |r|
     finished[r[:horsename]][:top].push(r[:roundtop])
     finished[r[:horsename]][:wide].push(r[:roundwide])
   end
-  frame_eval.each do |r|
-    frame_num = r[:framenumber]
-    horse_names = []
-    card.each do |c|
-      if c[:framenumber] == frame_num
-        horse_names.push c[:horsename]
-      end
+  data.each do |d|
+    #horseName,horseId,oikiri,comment,timePointTop,timePointWide,timePointTotal,rankPoint,tyakusaPoint
+    round_oikiri = d[:oikiri].to_f / 10
+    round_comment = d[:comment].to_f / 10
+    round_time_top = d[:timepointtop].to_f / 2
+    round_time_wide = d[:timepointwide].to_f / 5
+    begin
+      finished[d[:horsename]][:top].push(round_oikiri, round_comment, round_time_top)
+      finished[d[:horsename]][:wide].push(round_oikiri, round_comment, round_time_wide)
+    rescue
+      p @dir_name
     end
-    horse_names.each do |h|
-      finished[h][:top].push(r[:roundtop])
-      finished[h][:wide].push(r[:roundwide])
-    end
   end
-  time_eval.each do |r|
-    finished[r[:horsename]][:top].push(r[:round])
-    finished[r[:horsename]][:wide].push(r[:round])
-  end
-  race_eval.each do |r|
-    finished[r[:horsename]][:top].push(r[:round])
-    finished[r[:horsename]][:wide].push(r[:round])
-  end
+  #frame_eval.each do |r|
+  #  frame_num = r[:framenumber]
+  #  horse_names = []
+  #  card.each do |c|
+  #    if c[:framenumber] == frame_num
+  #      horse_names.push c[:horsename]
+  #    end
+  #  end
+  #  horse_names.each do |h|
+  #    finished[h][:top].push(r[:roundtop])
+  #    finished[h][:wide].push(r[:roundwide])
+  #  end
+  #end
+  #time_eval.each do |r|
+  #  finished[r[:horsename]][:top].push(r[:round])
+  #  finished[r[:horsename]][:wide].push(r[:round])
+  #end
+  #race_eval.each do |r|
+  #  finished[r[:horsename]][:top].push(r[:round])
+  #  finished[r[:horsename]][:wide].push(r[:round])
+  #end
 
   finished_csv_top = []
   finished_csv_wide = []
@@ -75,8 +95,8 @@ def evaluate_finished
   finished_csv_wide = round_five(finished_csv_wide)
   sorted = finished_csv_top.sort_by{|x| x[3]*-1 }
   sorted2 = finished_csv_wide.sort_by{|x| x[3]*-1 }
-  sorted.unshift(["horseNumber","horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint","racePoint","roubdTotalPoint"])
-  sorted2.unshift(["horseNumber", "horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","framePoint","timePoint","racePoint","roubdTotalPoint"])
+  sorted.unshift(["horseNumber","horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","oikiriPoint","stablePoint","timePoint","roubdTotalPoint"])
+  sorted2.unshift(["horseNumber", "horseName","jockeyName","totalPoint","horsePoint","jockeyPoint","oikiriPoint","stablePoint","timePoint","roubdTotalPoint"])
   write(sorted, "finished_top")
   write(sorted2, "finished_wide")
 end

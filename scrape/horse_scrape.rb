@@ -11,11 +11,11 @@ header_str = "horseName,date,raceCourse,weather,raceNumber,raceName,horseTotalNu
 @race_results = [header_str.split(",")]
 @horse_names  = []
 
-@dir_name = "0501nhkmile"
-@races_url = "https://db.netkeiba.com/?pid=race_list&word=%A3%CE%A3%C8%A3%CB%A5%DE%A5%A4%A5%EB%A5%AB%A5%C3%A5%D7&front=1" 
-@base_race_name = "NHKマイルC(G1)" 
-@start_years = 2 #過去データ取るときは 2
-@years = 15 
+@dir_name = "G3/0708isd"
+@races_url = "https://db.netkeiba.com/?pid=race_list&word=%A5%A2%A5%A4%A5%D3%A5%B9%A5%B5%A5%DE%A1%BC%A5%C0%A5%C3%A5%B7%A5%E5&front=1" 
+@base_race_name = "アイビスサマーD(G3)" 
+@start_years = 1 #過去データ取るときは 2
+@years = 15
 
 class String
   def sjisable
@@ -105,10 +105,28 @@ end
 
 def main(races_url)
   agent = login()
-
+  race_urls = [
+    "https://db.netkeiba.com/race/202044070811/",
+    "https://db.netkeiba.com/race/201944071011/",
+    "https://db.netkeiba.com/race/201844071111/",
+    "https://db.netkeiba.com/race/201744071211/",
+    "https://db.netkeiba.com/race/201644071311/",
+    "https://db.netkeiba.com/race/201544070811/",
+    "https://db.netkeiba.com/race/201444070911/",
+    "https://db.netkeiba.com/race/201344071011/",
+    "https://db.netkeiba.com/race/201244071111/",
+    "https://db.netkeiba.com/race/201144071311/",
+    "https://db.netkeiba.com/race/201044071411/",
+    "https://db.netkeiba.com/race/200944070811/",
+    "https://db.netkeiba.com/race/200844070911/",
+    "https://db.netkeiba.com/race/200744071111/",
+    "https://db.netkeiba.com/race/200644071211/",
+  ]
   race_urls = get_race_url(races_url)
+  
   race_urls.each do |race_url|
     urls = get_horse_url(race_url)
+    
     urls.each do |url|
       puts url
       get_data_logined_page(url,agent)

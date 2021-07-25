@@ -1,9 +1,24 @@
 
-dir_name = "0501nhkmile"
-card_url = "https://race.netkeiba.com/race/shutuba.html?race_id=202105020611"
-races_url = "https://db.netkeiba.com/?pid=race_list&word=%A3%CE%A3%C8%A3%CB%A5%DE%A5%A4%A5%EB%A5%AB%A5%C3%A5%D7&front=1"
-base_race_name = "NHKマイルC(G1)"
+require "csv"
 
-system("ruby scrape/card.rb '#{dir_name}' '#{card_url}' ")
-system("ruby scrape/this_year.rb '#{dir_name}' '#{card_url}' '#{base_race_name}'")
+data = CSV.table("race_list_done.csv", encoding: "UTF-8")
+
+data.each do |d|
+  if 382 <= d[:id] && d[:id] <= 382
+    dir_name = d[:dirname]
+    base_race_name = d[:racename]
+    card_url = "https://race.netkeiba.com/race/shutuba.html?race_id=" + d[:raceid].to_s
+    result_url = "https://race.netkeiba.com/race/result.html?race_id=" + d[:raceid].to_s
+
+    #system("ruby scrape/card.rb '#{dir_name}' '#{card_url}' ")
+    #system("ruby scrape/this_year.rb '#{dir_name}' '#{card_url}' '#{base_race_name}'")
+    #system("ruby scrape/data.rb '#{dir_name}' '#{d[:raceid].to_s}'")
+    #system("ruby scrape/ten_years_update.rb '#{dir_name}' '#{base_race_name}'")
+    #system("ruby scrape/result.rb '#{dir_name}' '#{result_url}'")
+    #system("ruby other/add_odds_rank.rb '#{dir_name}'")
+    system("ruby other/add_odds_rank_g3.rb '#{dir_name}'")
+
+    p "done" + dir_name
+  end
+end
 

@@ -4,8 +4,9 @@ require "csv"
 @dir_name = ARGV[0] 
 
 def evaluate_result()
-  result_arrange = CSV.table("datas/#{@dir_name}/result_arrange.csv", encoding: "UTF-8")
-  this_year = CSV.table("datas/#{@dir_name}/this_year.csv", encoding: "UTF-8")
+  dir_name = @dir_name
+  this_year = CSV.table("datas/#{dir_name}/this_year.csv", encoding: "UTF-8")
+  result_arrange = CSV.table("datas/#{dir_name}/result_arrange.csv", encoding: "UTF-8")
 
   result_arrange_map = {}
   result_arrange.each do |res|
@@ -25,12 +26,11 @@ def evaluate_result()
   horse_names.each do |name|
     horse_name_map.store(name, {top:[], wide:[]})
   end
-
   this_year.each do |data|
     name = data[:horsename]
-    race = data[:racename]
-    next if race.include?("万下")
-    next if race.include?("OP")
+    race = race_name_strip(data[:racename])
+    #next if race.include?("万下")
+    #next if race.include?("OP")
     rank = data[:rank]
     top_point = 0
     wide_point = 0
@@ -43,11 +43,17 @@ def evaluate_result()
     else
       top_point = result_arrange_map.dig(race,:toppoint3)
       wide_point = result_arrange_map.dig(race,:widepoint3)
+      top_point *= 0.3 if top_point
+      wide_point *= 0.3 if wide_point
     end
     horse_name_map[name][:top].push top_point
     horse_name_map[name][:wide].push wide_point
   end
-
+  CSV.open("kakunin.csv", "w") do |csv| 
+    horse_name_map.each do |data|
+      csv << data
+    end
+  end
   result_evaluated = []
   horse_name_map.each do |data|
     name = data[0]
@@ -71,6 +77,14 @@ def evaluate_result()
   
 end
 
+def race_name_strip(race_name)
+  if race_name.include? "("
+    race_name = race_name.split("(")[0]
+  else
+    race_name
+  end
+end
+
 def write(result_evaluated, file_name)
   CSV.open("datas/#{@dir_name}/#{file_name}.csv", "w") do |csv| 
     result_evaluated.each do |data|
@@ -86,8 +100,8 @@ def round_five(result)
     top_points.push res[1]
     wide_points.push res[2]
   end
-  max_top_point = top_points.max
-  max_wide_point = wide_points.max
+  max_top_point = top_points.max || 0
+  max_wide_point = wide_points.max || 0
 
   div_t = max_top_point / 5
   div_w = max_wide_point / 5

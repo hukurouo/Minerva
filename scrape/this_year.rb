@@ -12,6 +12,11 @@ header_str = "horseName,date,raceCourse,weather,raceNumber,raceName,horseTotalNu
 @dir_name = ARGV[0] #"0502victoriamile"
 @url = ARGV[1] #"https://race.netkeiba.com/race/shutuba.html?race_id=202105020811"
 @base_race_name = ARGV[2].encode("UTF-8")
+if @dir_name.split("/").size() >= 3
+  @year = @dir_name.split("/")[1]
+else
+  @year = "2021"
+end
 
 class String
   def sjisable
@@ -38,11 +43,11 @@ def get_data_logined_page(url,agent)
   page = agent.get(url)
   table = page.xpath('//table[@class="db_h_race_results nk_tb_common"]/tbody/tr')
   name = page.xpath('//div[@class="horse_title"]').css('h1').text.strip.gsub(/[[:space:]]/, '')
-  flag = false
+  flag = true # todayはtrue 過去scrapeのときfalse
   table.each_with_index do |tr, index|
     tds = [name]
     
-    if tr.css('td')[4].text == @base_race_name
+    if (tr.css('td')[4].text == @base_race_name) && tr.css('td')[0].text.include?(@year)
       flag = true
       next
     end

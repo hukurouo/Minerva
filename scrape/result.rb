@@ -4,7 +4,7 @@ require "csv"
 
 INTERVEL_SEC = 1
 
-header_str = "rank,horseName,horseNumber" 
+header_str = "rank,horseName,horseNumber,odds_rank" 
 @results = [header_str.split(",")]
 
 @odds = [["type","horseNumber","odds"]]
@@ -34,7 +34,8 @@ def get_result(url)
     horse_name = tr.css('td')[3].text.strip.sjisable
     horse_number = tr.css('td')[2].text.strip.sjisable
     rank = tr.css('td')[0].text.strip.sjisable
-    @results.push([rank,horse_name,horse_number])
+    odds_rank = tr.css('td')[9].text.strip.sjisable
+    @results.push([rank,horse_name,horse_number,odds_rank])
   end
 
   write("result", @results)

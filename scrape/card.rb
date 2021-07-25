@@ -7,7 +7,7 @@ INTERVEL_SEC = 1
 header_str = "horseName,frameNumber,jockeyName,jockeyId,horseNumber" 
 @results = [header_str.split(",")]
 
-@dir_name = ARGV[0] #"0502victoriamile"
+@dir_name = ARGV[0] # "0502victoriamile"
 @url = ARGV[1] #"https://race.netkeiba.com/race/shutuba.html?race_id=202105020811&rf=race_submenu"
 
 class String
